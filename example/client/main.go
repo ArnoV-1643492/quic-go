@@ -55,6 +55,8 @@ func main() {
 	}
 	testdata.AddRootCA(pool)
 
+	qlogEventChan := make(chan string)
+
 	var qconf quic.Config
 	if *enableQlog {
 		qconf.Tracer = qlog.NewTracer(func(_ logging.Perspective, connID []byte) io.WriteCloser {
@@ -65,8 +67,13 @@ func main() {
 			}
 			log.Printf("Creating qlog file %s.\n", filename)
 			return utils.NewBufferedWriteCloser(bufio.NewWriter(f), f)
-		})
+		},
+			qlogEventChan,
+		)
 	}
+
+	go printQlogEvents(qlogEventChan)
+
 	roundTripper := &http3.RoundTripper{
 		TLSClientConfig: &tls.Config{
 			RootCAs:            pool,
@@ -105,5 +112,12 @@ func main() {
 			wg.Done()
 		}(addr)
 	}
+	// TODO find a way to cleanly exit the qlogevent receiver when we reach the end
 	wg.Wait()
+}
+
+func printQlogEvents(c chan string) {
+	for msg := range c {
+		fmt.Println(msg)
+	}
 }
