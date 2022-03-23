@@ -22,15 +22,15 @@ type eventDetails interface {
 	gojay.MarshalerJSONObject
 }
 
-type event struct {
+type Event struct {
 	RelativeTime time.Duration
 	eventDetails
 }
 
-var _ gojay.MarshalerJSONObject = event{}
+var _ gojay.MarshalerJSONObject = Event{}
 
-func (e event) IsNil() bool { return false }
-func (e event) MarshalJSONObject(enc *gojay.Encoder) {
+func (e Event) IsNil() bool { return false }
+func (e Event) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.Float64Key("time", milliseconds(e.RelativeTime))
 	enc.StringKey("name", e.Category().String()+":"+e.Name())
 	enc.ObjectKey("data", e.eventDetails)

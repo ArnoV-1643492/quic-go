@@ -51,13 +51,13 @@ const eventChanSize = 50
 
 type tracer struct {
 	getLogWriter      func(p logging.Perspective, connectionID []byte) io.WriteCloser
-	events_crossLayer chan string
+	events_crossLayer chan Event
 }
 
 var _ logging.Tracer = &tracer{}
 
 // NewTracer creates a new qlog tracer.
-func NewTracer(getLogWriter func(p logging.Perspective, connectionID []byte) io.WriteCloser, events_crossLayerInput chan string) logging.Tracer {
+func NewTracer(getLogWriter func(p logging.Perspective, connectionID []byte) io.WriteCloser, events_crossLayerInput chan Event) logging.Tracer {
 	return &tracer{getLogWriter: getLogWriter, events_crossLayer: events_crossLayerInput}
 }
 
@@ -80,26 +80,26 @@ type connectionTracer struct {
 	perspective   protocol.Perspective
 	referenceTime time.Time
 
-	events     chan event
+	events     chan Event
 	encodeErr  error
 	runStopped chan struct{}
 
 	lastMetrics *metrics
 
 	// Cross layer stuff
-	events_crossLayer chan string
+	events_crossLayer chan Event
 }
 
 var _ logging.ConnectionTracer = &connectionTracer{}
 
 // NewConnectionTracer creates a new tracer to record a qlog for a connection.
-func NewConnectionTracer(w io.WriteCloser, p protocol.Perspective, odcid protocol.ConnectionID, events_crossLayerInput chan string) logging.ConnectionTracer {
+func NewConnectionTracer(w io.WriteCloser, p protocol.Perspective, odcid protocol.ConnectionID, events_crossLayerInput chan Event) logging.ConnectionTracer {
 	t := &connectionTracer{
 		w:                 w,
 		perspective:       p,
 		odcid:             odcid,
 		runStopped:        make(chan struct{}),
-		events:            make(chan event, eventChanSize),
+		events:            make(chan Event, eventChanSize),
 		referenceTime:     time.Now(),
 		events_crossLayer: events_crossLayerInput,
 	}
@@ -162,9 +162,11 @@ func (t *connectionTracer) export() error {
 }
 
 func (t *connectionTracer) recordEvent(eventTime time.Time, details eventDetails) {
-	fmt.Println("RECORDING EVENT")
-	t.events_crossLayer <- "TRANSPORT LAYER EVENT"
-	t.events <- event{
+	t.events_crossLayer <- Event{
+		RelativeTime: eventTime.Sub(t.referenceTime),
+		eventDetails: details,
+	}
+	t.events <- Event{
 		RelativeTime: eventTime.Sub(t.referenceTime),
 		eventDetails: details,
 	}

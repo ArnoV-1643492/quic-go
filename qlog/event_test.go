@@ -24,7 +24,7 @@ var _ = Describe("Events", func() {
 	It("marshals the fields before the event details", func() {
 		buf := &bytes.Buffer{}
 		enc := gojay.NewEncoder(buf)
-		Expect(enc.Encode(event{
+		Expect(enc.Encode(Event{
 			RelativeTime: 1337 * time.Microsecond,
 			eventDetails: mevent{},
 		})).To(Succeed())
