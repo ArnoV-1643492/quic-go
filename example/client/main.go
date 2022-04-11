@@ -55,7 +55,7 @@ func main() {
 	}
 	testdata.AddRootCA(pool)
 
-	qlogEventChan := make(chan string)
+	qlogEventChan := make(chan qlog.Event)
 
 	var qconf quic.Config
 	if *enableQlog {
@@ -72,7 +72,7 @@ func main() {
 		)
 	}
 
-	go printQlogEvents(qlogEventChan)
+	//go printQlogEvents(qlogEventChan)
 
 	roundTripper := &http3.RoundTripper{
 		TLSClientConfig: &tls.Config{

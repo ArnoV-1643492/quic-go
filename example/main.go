@@ -160,6 +160,8 @@ func main() {
 		bs = binds{"localhost:6121"}
 	}
 
+	qlogEventChan := make(chan qlog.Event)
+
 	handler := setupHandler(*www)
 	quicConf := &quic.Config{}
 	if *enableQlog {
@@ -171,7 +173,9 @@ func main() {
 			}
 			log.Printf("Creating qlog file %s.\n", filename)
 			return utils.NewBufferedWriteCloser(bufio.NewWriter(f), f)
-		})
+		},
+			qlogEventChan,
+		)
 	}
 
 	var wg sync.WaitGroup
