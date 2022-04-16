@@ -315,6 +315,7 @@ func (t *connectionTracer) ReceivedPacket(hdr *wire.ExtendedHeader, packetSize l
 	}
 	header := *transformExtendedHeader(hdr)
 	t.mutex.Lock()
+	//fmt.Println("Recording ReceivedPacket")
 	t.recordEvent(time.Now(), &eventPacketReceived{
 		Header:        header,
 		Length:        packetSize,

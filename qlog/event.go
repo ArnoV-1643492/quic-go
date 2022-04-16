@@ -27,6 +27,10 @@ type Event struct {
 	eventDetails
 }
 
+func (e Event) GetEventDetails() eventDetails {
+	return e.eventDetails
+}
+
 var _ gojay.MarshalerJSONObject = Event{}
 
 func (e Event) IsNil() bool { return false }
@@ -197,6 +201,10 @@ func (e eventPacketReceived) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.ArrayKeyOmitEmpty("frames", e.Frames)
 	enc.BoolKeyOmitEmpty("is_coalesced", e.IsCoalesced)
 	enc.StringKeyOmitEmpty("trigger", e.Trigger)
+}
+
+func (e eventPacketReceived) GetPayloadLength() uint64 {
+	return uint64(e.PayloadLength)
 }
 
 type eventRetryReceived struct {
